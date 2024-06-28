@@ -2327,7 +2327,7 @@ class UMAP(BaseEstimator):
 
         return result
 
-    def fit(self, X, y=None, force_all_finite=True):
+    def fit(self, X, y=None, domains=None, force_all_finite=True):
         """Fit X into an embedded space.
 
         Optionally use y for supervised dimension reduction.
@@ -2345,6 +2345,9 @@ class UMAP(BaseEstimator):
             handled is determined by parameters UMAP was instantiated with.
             The relevant attributes are ``target_metric`` and
             ``target_metric_kwds``.
+        
+        domains : array, shape (n_samples)
+            array, shape n_samples defines the domain of X
 
         force_all_finite : Whether to raise an error on np.inf, np.nan, pd.NA in array.
             The possibilities are: - True: Force all values of array to be finite.
@@ -2852,7 +2855,7 @@ class UMAP(BaseEstimator):
             tqdm_kwds=self.tqdm_kwds,
         )
 
-    def fit_transform(self, X, y=None, force_all_finite=True):
+    def fit_transform(self, X, y=None, domains=None, force_all_finite=True):
         """Fit X into an embedded space and return that transformed
         output.
 
@@ -2888,7 +2891,7 @@ class UMAP(BaseEstimator):
         r_emb: array, shape (n_samples)
             Local radii of data points in the embedding (log-transformed).
         """
-        self.fit(X, y, force_all_finite)
+        self.fit(X, y, domains, force_all_finite)
         if self.transform_mode == "embedding":
             if self.output_dens:
                 return self.embedding_, self.rad_orig_, self.rad_emb_
