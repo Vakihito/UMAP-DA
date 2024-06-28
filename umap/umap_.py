@@ -2563,6 +2563,10 @@ class UMAP(BaseEstimator):
                     )
             # set any values greater than disconnection_distance to be np.inf.
             # This will have no effect when _disconnection_distance is not set since it defaults to np.inf.
+            
+            ###################################
+            ### HERE IS THE THING TO CHANGE ###
+            ###################################
             edges_removed = np.sum(dmat >= self._disconnection_distance)
             dmat[dmat >= self._disconnection_distance] = np.inf
             (
