@@ -2327,7 +2327,7 @@ class UMAP(BaseEstimator):
 
         return result
 
-    def fit(self, X, y=None, force_all_finite=True):
+    def fit(self, X, y=None, domains=None, force_all_finite=True):
         """Fit X into an embedded space.
 
         Optionally use y for supervised dimension reduction.
@@ -2345,6 +2345,9 @@ class UMAP(BaseEstimator):
             handled is determined by parameters UMAP was instantiated with.
             The relevant attributes are ``target_metric`` and
             ``target_metric_kwds``.
+        
+        domains : array, shape (n_samples)
+            array, shape n_samples defines the domain of X
 
         force_all_finite : Whether to raise an error on np.inf, np.nan, pd.NA in array.
             The possibilities are: - True: Force all values of array to be finite.
@@ -2560,8 +2563,25 @@ class UMAP(BaseEstimator):
                     )
             # set any values greater than disconnection_distance to be np.inf.
             # This will have no effect when _disconnection_distance is not set since it defaults to np.inf.
+            
+            ###################################
+            ### HERE IS THE THING TO CHANGE ###
+            ###################################
+            print("dmat.shape: ", dmat.shape)
+            print("dmat: ", dmat)
             edges_removed = np.sum(dmat >= self._disconnection_distance)
+            if domains is not None:
+                # remove connection between data from the same domain
+                n_lins, _ = dmat.shape
+                for i in range(n_lins):
+                    for j in range(i+1, n_lins):
+                        if domains[i] == domains[j]:
+                            dmat[i][j] = np.inf
+                            dmat[j][i] = np.inf
+            
             dmat[dmat >= self._disconnection_distance] = np.inf
+            print("dmat after disconnection : \n", dmat)
+
             (
                 self.graph_,
                 self._sigmas,
@@ -2852,7 +2872,7 @@ class UMAP(BaseEstimator):
             tqdm_kwds=self.tqdm_kwds,
         )
 
-    def fit_transform(self, X, y=None, force_all_finite=True):
+    def fit_transform(self, X, y=None, domains=None, force_all_finite=True):
         """Fit X into an embedded space and return that transformed
         output.
 
@@ -2888,7 +2908,7 @@ class UMAP(BaseEstimator):
         r_emb: array, shape (n_samples)
             Local radii of data points in the embedding (log-transformed).
         """
-        self.fit(X, y, force_all_finite)
+        self.fit(X, y, domains, force_all_finite)
         if self.transform_mode == "embedding":
             if self.output_dens:
                 return self.embedding_, self.rad_orig_, self.rad_emb_

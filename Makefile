@@ -9,3 +9,6 @@ gh-pages:
 	rm -rf doc
 	git add -A
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout master
+
+test:
+	\Users\Akihito\AppData\Local\Programs\Python\Python39\python.exe test.py
