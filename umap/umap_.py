@@ -2635,6 +2635,7 @@ class UMAP(BaseEstimator):
                 print("domains provided, DATA IS TOO BIG, since there is too many data points, we need to calculate neighbors")
                 print(f"this would require to change 'knn_search_index = NNDescent'")
                 print("instead of that just pass the preprocessed distances")
+                print("or just increase 'MAX_KNN_MATRIX_SIZE'")
                 raise ValueError("domains provided, DATA IS TOO BIG")
 
             # Standard case
