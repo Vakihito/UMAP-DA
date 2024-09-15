@@ -57,6 +57,7 @@ INT32_MAX = np.iinfo(np.int32).max - 1
 SMOOTH_K_TOLERANCE = 1e-5
 MIN_K_DIST_SCALE = 1e-3
 NPY_INFINITY = np.inf
+MAX_KNN_MATRIX_SIZE = 65536
 
 DISCONNECTION_DISTANCES = {
     "correlation": 2,
@@ -2042,7 +2043,7 @@ class UMAP(BaseEstimator):
                 self.knn_dists = None
                 self.knn_search_index = None
             elif (
-                self.knn_dists.shape[0] < 4096
+                self.knn_dists.shape[0] < MAX_KNN_MATRIX_SIZE
                 and not self.force_approximation_algorithm
             ):
                 # force_approximation_algorithm is irrelevant for pre-computed knn
@@ -2547,7 +2548,7 @@ class UMAP(BaseEstimator):
                 verbose=self.verbose,
             )
         # Handle small cases efficiently by computing all distances
-        elif X[index].shape[0] < 4096 and not self.force_approximation_algorithm:
+        elif X[index].shape[0] < MAX_KNN_MATRIX_SIZE and not self.force_approximation_algorithm:
             self._small_data = True
             try:
                 # sklearn pairwise_distances fails for callable metric on sparse data
@@ -2586,6 +2587,7 @@ class UMAP(BaseEstimator):
 
             edges_removed = np.sum(dmat >= self._disconnection_distance)
             if domains is not None:
+                print("domains provided disconnecting the data from the same domain")
                 # remove connection between data from the same domain
                 n_lins, _ = dmat.shape
                 for i in range(n_lins):
@@ -2629,6 +2631,12 @@ class UMAP(BaseEstimator):
                 verbose=self.verbose,
             )
         else:
+            if domains is not None:
+                print("domains provided, DATA IS TOO BIG, since there is too many data points, we need to calculate neighbors")
+                print(f"this would require to change 'knn_search_index = NNDescent'")
+                print("instead of that just pass the preprocessed distances")
+                raise ValueError("domains provided, DATA IS TOO BIG")
+
             # Standard case
             self._small_data = False
             # Standard case
@@ -2753,7 +2761,7 @@ class UMAP(BaseEstimator):
                     target_n_neighbors = self.target_n_neighbors
 
                 # Handle the small case as precomputed as before
-                if y.shape[0] < 4096:
+                if y.shape[0] < MAX_KNN_MATRIX_SIZE:
                     try:
                         ydmat = pairwise_distances(
                             y_, metric=self.target_metric, **self._target_metric_kwds
@@ -3384,7 +3392,7 @@ class UMAP(BaseEstimator):
             else:
                 self._raw_data = np.vstack([self._raw_data, X])
 
-            if self._raw_data.shape[0] < 4096:
+            if self._raw_data.shape[0] < MAX_KNN_MATRIX_SIZE:
                 # still small data
                 try:
                     # sklearn pairwise_distances fails for callable metric on sparse data
